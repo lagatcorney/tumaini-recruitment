@@ -1821,22 +1821,25 @@
     }
   };
 
-  // Initialize EmailJS
-  (function() {
-    try {
-      if (EMAILJS_ACCOUNT1.USER_ID && EMAILJS_ACCOUNT1.USER_ID !== '') {
-        emailjs.init(EMAILJS_ACCOUNT1.USER_ID);
-        console.log("✅ EmailJS Account 1 initialized successfully!");
-      }
-      console.log("📧 Using Service ID:", EMAILJS_CONFIG.SERVICE_ID);
-      console.log("📧 Interview Template:", EMAILJS_CONFIG.INTERVIEW_TEMPLATE);
-      console.log("📧 Offer Template:", EMAILJS_CONFIG.OFFER_TEMPLATE);
-      console.log("📧 Status Template:", EMAILJS_CONFIG.STATUS_TEMPLATE);
-      console.log("📧 Confirmation Template:", EMAILJS_CONFIG.CONFIRMATION_TEMPLATE);
-    } catch (error) {
-      console.error("❌ EmailJS initialization error:", error);
+// ============================================================
+// EMAILJS INITIALIZATION - Using Account 2
+// ============================================================
+(function() {
+  try {
+    // Initialize with Account 2's USER ID
+    if (EMAILJS_ACCOUNT2.USER_ID && EMAILJS_ACCOUNT2.USER_ID !== '') {
+      emailjs.init(EMAILJS_ACCOUNT2.USER_ID);
+      console.log("✅ EmailJS initialized with Account 2:", EMAILJS_ACCOUNT2.FROM_EMAIL);
+      console.log("   - Service ID:", EMAILJS_ACCOUNT2.SERVICE_ID);
+      console.log("   - Interview Template:", EMAILJS_ACCOUNT2.TEMPLATES.INTERVIEW);
+      console.log("   - Offer Template:", EMAILJS_ACCOUNT2.TEMPLATES.OFFER);
+    } else {
+      console.error("❌ Account 2 USER_ID is missing!");
     }
-  })();
+  } catch (error) {
+    console.error("❌ EmailJS initialization error:", error);
+  }
+})();
 
   // ============================================================
   // DOM REFS

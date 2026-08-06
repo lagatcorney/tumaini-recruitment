@@ -1773,17 +1773,17 @@
     }
   };
 
-  // Account 2: Secondary account for interviews and offers
-  const EMAILJS_ACCOUNT2 = {
-    SERVICE_ID: 'service_f5qd7va',
-    USER_ID: '28XpXOrvNv-QojME7',
-    FROM_EMAIL: 'tumainitvc@gmail.com',
-    REPLY_TO: 'tumainitvc@gmail.com',
-    TEMPLATES: {
-      INTERVIEW: 'template_7xru5w5',
-      OFFER: 'template_v5suocq'
-    }
-  };
+ // Account 2: Secondary account for interviews and offers
+const EMAILJS_ACCOUNT2 = {
+  SERVICE_ID: 'service_8w7mcd9',                           // ✅ Correct
+  USER_ID: 'l4L94j1fxRDcaP4pV',                           // ✅ Correct
+  FROM_EMAIL: 'tumainitvcbungoma@gmail.com',              // ✅ Correct
+  REPLY_TO: 'tumainitvcbungoma@gmail.com',                // ✅ FIXED
+  TEMPLATES: {
+    INTERVIEW: 'template_7xru5w5',                        // ✅ Correct
+    OFFER: 'template_v5suocq'                             // ✅ Correct
+  }
+};
 
   // Main configuration for backward compatibility
   const EMAILJS_CONFIG = {
@@ -2592,7 +2592,7 @@
     }
   }
 
-  // Send using Account 2 (tumainitvc@gmail.com)
+  // Send using Account 2 (tumainitvcbungoma@gmail.com)
   async function sendEmailAccount2(templateId, templateParams) {
     try {
       const result = await emailjs.send(
@@ -3418,6 +3418,52 @@
   // ============================================================
   // DOWNLOAD FUNCTIONS
   // ============================================================
+  
+  /**
+   * Download a single PDF file
+   */
+  function downloadSinglePDF(url, fileName, index) {
+    if (!url) {
+      showNotification('❌ No PDF URL found.', 'error');
+      return;
+    }
+    
+    try {
+      // If it's a data URL (Base64)
+      if (url.startsWith('data:application/pdf')) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${fileName || 'document'}_${index + 1}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showNotification(`📄 Downloading PDF ${index + 1} for ${fileName}`, 'success');
+        return;
+      }
+      
+      // If it's a blob URL
+      if (url.startsWith('blob:')) {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${fileName || 'document'}_${index + 1}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showNotification(`📄 Downloading PDF ${index + 1} for ${fileName}`, 'success');
+        return;
+      }
+      
+      // If it's a Firebase Storage URL or other URL
+      // Open in new tab (user can then save)
+      window.open(url, '_blank');
+      showNotification(`📄 Opening PDF ${index + 1} for ${fileName}`, 'info');
+      
+    } catch (error) {
+      console.error('Download error:', error);
+      showNotification('❌ Error downloading PDF: ' + error.message, 'error');
+    }
+  }
+
   async function downloadByCourse(course) {
     if (!isAdmin) {
       adminStatus.className = 'status-message status-warning';
@@ -3447,19 +3493,7 @@
       progressFill.style.width = '0%';
       let downloaded = 0;
       for (const url of allUrls) {
-        if (url.startsWith('data:application/pdf')) {
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `document_${Date.now()}.pdf`;
-          link.click();
-        } else if (url.startsWith('blob:')) {
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `document_${Date.now()}.pdf`;
-          link.click();
-        } else {
-          window.open(url, '_blank');
-        }
+        downloadSinglePDF(url, course, downloaded);
         downloaded++;
         progressFill.style.width = ((downloaded / allUrls.length) * 100) + '%';
         await new Promise(r => setTimeout(r, 300));
@@ -3504,19 +3538,7 @@
       progressFill.style.width = '0%';
       let downloaded = 0;
       for (const url of allUrls) {
-        if (url.startsWith('data:application/pdf')) {
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `document_${Date.now()}.pdf`;
-          link.click();
-        } else if (url.startsWith('blob:')) {
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `document_${Date.now()}.pdf`;
-          link.click();
-        } else {
-          window.open(url, '_blank');
-        }
+        downloadSinglePDF(url, 'applicant', downloaded);
         downloaded++;
         progressFill.style.width = ((downloaded / allUrls.length) * 100) + '%';
         adminStatus.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Downloaded ${downloaded}/${allUrls.length} PDFs...`;
@@ -3562,19 +3584,7 @@
       adminStatus.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Downloading ${allUrls.length} PDFs for ${selectedApplicantIds.size} applicants...`;
       let downloaded = 0;
       for (const url of allUrls) {
-        if (url.startsWith('data:application/pdf')) {
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `document_${Date.now()}.pdf`;
-          link.click();
-        } else if (url.startsWith('blob:')) {
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `document_${Date.now()}.pdf`;
-          link.click();
-        } else {
-          window.open(url, '_blank');
-        }
+        downloadSinglePDF(url, 'selected', downloaded);
         downloaded++;
         await new Promise(r => setTimeout(r, 200));
       }
@@ -3943,7 +3953,7 @@
   filterCourse.addEventListener('change', filterApplicants);
 
   // ============================================================
-  // RENDER FILTERED TABLE
+  // RENDER FILTERED TABLE - UPDATED WITH INDIVIDUAL PDF DOWNLOADS AND PHONE COLUMN
   // ============================================================
   function renderFilteredTable(filtered) {
     if (!filtered || filtered.length === 0) {
@@ -3956,7 +3966,7 @@
     };
     let html = `<div style="overflow-x: auto;"><table class="tracking-table"><thead><tr>
       <th><input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll()"></th>
-      <th>#</th><th>Name</th><th>Course</th><th>Email</th><th>Status</th><th>Rating</th><th>Documents</th><th>Actions</th>
+      <th>#</th><th>Name</th><th>Course</th><th>Email</th><th>Phone</th><th>Status</th><th>Rating</th><th>Documents</th><th>Actions</th>
     </tr></thead><tbody>`;
     filtered.forEach((app, idx) => {
       const status = app.status || 'pending';
@@ -3968,6 +3978,27 @@
       const showInterview = (status === 'shortlisted');
       const showRating = (status !== 'rejected');
       const isOffered = (status === 'offered');
+      const phone = app.phone || '';
+      
+      // ✅ Generate individual download buttons for each PDF
+      let docButtons = '';
+      if (docCount > 0) {
+        const docUrls = app.docUrls || [];
+        docButtons = `<div style="display: flex; flex-direction: column; gap: 2px; font-size: 0.7rem;">
+          <span><i class="fas fa-file-pdf" style="color: #dc3545;"></i> ${docCount} file(s)</span>`;
+        docUrls.forEach((url, index) => {
+          // Escape single quotes in URL and name for onclick
+          const escapedUrl = url.replace(/'/g, "\\'");
+          const escapedName = (app.name || 'document').replace(/'/g, "\\'");
+          docButtons += `<button onclick="downloadSinglePDF('${escapedUrl}', '${escapedName}', ${index})" 
+                            style="background: #dc3545; color: white; border: none; border-radius: 4px; padding: 2px 6px; cursor: pointer; font-size: 0.6rem; margin-top: 2px;">
+                            <i class="fas fa-download"></i> PDF ${index + 1}
+                         </button>`;
+        });
+        docButtons += `</div>`;
+      } else {
+        docButtons = '-';
+      }
       
       html += `<tr>
         <td><input type="checkbox" class="applicant-checkbox" data-id="${app.id}" ${checked} onchange="toggleApplicant('${app.id}')"></td>
@@ -3975,9 +4006,10 @@
         <td><strong>${app.name || 'Unknown'}</strong></td>
         <td>${app.course || 'N/A'}</td>
         <td>${app.email || ''}</td>
+        <td>${phone || '-'}</td>
         <td><span class="status-pill ${status}">${statusLabels[status] || '⏳ Pending'}</span></td>
         <td>${rating > 0 ? `<span class="rating-display" style="font-size: 0.9rem;">${ratingStars}</span>` : '-'}</td>
-        <td>${docCount > 0 ? `<i class="fas fa-file-pdf"></i> ${docCount} PDFs` : '-'}</td>
+        <td>${docButtons}</td>
         <td class="tracking-actions">
           <button class="btn btn-success btn-sm" onclick="updateStatus('${app.id}', 'shortlisted')" title="Shortlist"><i class="fas fa-star"></i></button>
           <button class="btn btn-info btn-sm" onclick="updateStatus('${app.id}', 'interview')" title="Interview"><i class="fas fa-calendar-alt"></i></button>
@@ -4514,13 +4546,13 @@
   console.log("✅ Account 1 (lagatcorney@gmail.com):");
   console.log("   - Status Template:", EMAILJS_ACCOUNT1.TEMPLATES.STATUS);
   console.log("   - Confirmation Template:", EMAILJS_ACCOUNT1.TEMPLATES.CONFIRMATION);
-  console.log("✅ Account 2 (tumainitvc@gmail.com):");
+  console.log("✅ Account 2 (tumainitvcbungoma@gmail.com):");
   console.log("   - Service ID:", EMAILJS_ACCOUNT2.SERVICE_ID);
   console.log("   - Interview Template:", EMAILJS_ACCOUNT2.TEMPLATES.INTERVIEW);
   console.log("   - Offer Template:", EMAILJS_ACCOUNT2.TEMPLATES.OFFER);
   console.log("✅ User ID:", EMAILJS_CONFIG.USER_ID);
   console.log("✅ All features integrated: Notes, Interview, Rating, Funnel, Bulk Actions, Email Templates, Rating System, Offer System, Recent Activity");
-  console.log("✅ EmailJS is ready to send real emails using tumainitvc@gmail.com!");
+  console.log("✅ EmailJS is ready to send real emails using tumainitvcbungoma@gmail.com!");
   console.log("✅ Offer system now properly returns {success: true/false, method: 'template_name'}");
   console.log("✅ Bulk send offers has progress tracking and detailed error reporting");
   console.log("✅ PDF UPLOAD FIXED: Multiple fallback methods (Firebase Storage → Base64 → File.io → Blob URL)");
